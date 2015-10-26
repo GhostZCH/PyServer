@@ -4,7 +4,7 @@
 ## done
 1. 动态更新配置 kill -2
 2. 安全退出 kill -15
-3. 文件日志处理     
+3. syslog, consolelog日志处理     
 
 ## todo
 1. 多种类型timer，(相对定时，绝对定时)
