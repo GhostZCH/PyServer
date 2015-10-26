@@ -1,4 +1,5 @@
 *.name
+*.pyc
 .idea/misc.xml
 .idea/PyServer.iml
 .idea/vcs.xml
