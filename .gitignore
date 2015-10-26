@@ -1,0 +1,6 @@
+*.name
+.idea/misc.xml
+.idea/PyServer.iml
+.idea/vcs.xml
+.idea/modules.xml
+.idea/workspace.xml
