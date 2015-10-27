@@ -1,4 +1,4 @@
 CONFIG_DICT = {
     'in': 'in.txt',
-    'out': 'out.txt'
+    'out': 'out1.txt'
 }

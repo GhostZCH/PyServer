@@ -3,7 +3,7 @@ from logging.handlers import SysLogHandler
 
 
 def get_logger(server_name, log_format, log_level):
-    log_format = logging.Formatter(log_format % server_name)
+    log_format = logging.Formatter(log_format)
 
     # sys log
     sys_log = SysLogHandler(address='/dev/log', facility=SysLogHandler.LOG_LOCAL3)

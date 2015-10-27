@@ -15,7 +15,7 @@ class MyServer(ServerBase):
         self.output_file = None
 
     def on_reload(self):
-        self.info('reload')
+        self.info('on_reload')
 
         # you can reload your own config or code here
         # use kill -2 to reload code
@@ -24,25 +24,33 @@ class MyServer(ServerBase):
 
         reload(my_util)
         reload(my_conf)
+        self.on_close()
+        self.on_start()
 
     def on_start(self):
-
-        self.info('start: s%', self.name)
+        self.info('start')
 
         # you can init your param here. like files, sockets...
         self.input_file = open(my_conf.CONFIG_DICT['in'], 'r')
         self.output_file = open(my_conf.CONFIG_DICT['out'], 'w')
 
     def on_close(self):
-        self.err('close')
+        self.err('on_close')
 
         # close you need to close, especially init in function on_start
-        self.input_file.close()
-        self.output_file.close()
+        if self.input_file:
+            self.input_file.close()
+            
+        if self.output_file:
+            self.output_file.close()
+        
+        self.input_file = None
+        self.output_file = None
 
-    def on_except(self, ex):
+    def on_except(self, ex, trace_back):
         # handle except, you can close program or just log it
         self.err(ex)
+        self.warn(trace_back)
 
         # if call close() it while call on_close automatic
         self.close(delay=1, exit_code=-2)
@@ -62,7 +70,7 @@ class MyServer(ServerBase):
             self.input_file.seek(0)
             self.output_file.seek(0)
 
-            time.sleep(1)
+            time.sleep(2)
 
 if __name__ == '__main__':
     svr = MyServer()
