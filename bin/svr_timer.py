@@ -25,9 +25,6 @@ class PeriodTimer(_AbstractTimer):
         self._next_time = time.time() + interval
 
     def run(self, time_stamp):
-        """
-        返回值 True 表示执行成功，返回 False
-        """
         if time_stamp < self._next_time:
             return True
 
@@ -45,7 +42,8 @@ class FixedPeriodTimer(PeriodTimer):
     """
     _TYPE_DICT = {
         'D': (24 * 3600, datetime.timedelta(days=1), '%Y%m%d'),
-        'H': (3600, datetime.timedelta(hours=1), '%Y%m%d%H')
+        'H': (3600, datetime.timedelta(hours=1), '%Y%m%d%H'),
+        'M': (60, datetime.timedelta(minutes=1), '%Y%m%d%H%M')
     }
 
     def __init__(self, target, fix_type, max_run_count=None):
@@ -65,14 +63,6 @@ class FixedPeriodTimer(PeriodTimer):
 
 class TimerObserver(Thread):
     def __init__(self, min_interval, on_except):
-        """
-        :param interval: 时间间隔
-        :param target: 执行的函数
-        :param args: 传递给 target 的参数（元组）
-        :param kwargs:  传递给 target 的参数（字典）
-        :param max_times: 执行的最大次数[1, 2, 3 ...]，None 表示不限制次数，直到 stop()
-        """
-
         Thread.__init__(self)
         self._interval = min_interval
         self._timer_dict = {}
