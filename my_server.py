@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import time
 
 from bin.svr_base import ServerBase
@@ -58,19 +60,17 @@ class MyServer(ServerBase):
     def run(self):
         self.info('run')
 
-        while True:
-            x = self.conf['other.x']
+        x = self.conf['other.x']
 
-            for line in self.input_file:
-                result = my_util.my_operation(line, x)
-                self.output_file.write(result)
+        msg = self.input_file.read()
+        result = my_util.my_operation(msg, x)
+        self.output_file.write(result)
 
-                self.info(result)
+        self.info('%s - > %s' % (msg, result))
 
-            self.input_file.seek(0)
-            self.output_file.seek(0)
+        self.input_file.seek(0)
+        self.output_file.seek(0)
 
-            time.sleep(2)
 
 if __name__ == '__main__':
     svr = MyServer()

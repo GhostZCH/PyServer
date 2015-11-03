@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 CONFIG_DICT = {
     # server
     'svr.name': 'my_server',
