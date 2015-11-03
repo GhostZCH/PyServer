@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 import signal
 import threading
 import traceback
@@ -13,6 +14,9 @@ force_exit = os._exit
 
 class ServerBase(object):
     def __init__(self):
+        self._is_run = None
+        self._is_close = False
+        self._run_lock = threading.RLock()
         signal.signal(signal.SIGINT, self._event_signal)
         signal.signal(signal.SIGUSR1, self._event_signal)
 
@@ -38,10 +42,33 @@ class ServerBase(object):
             force_exit(-1)
 
     def close(self, delay=None, exit_code=0):
+        if self._is_close:
+            return
+        self._is_close = True
+
         if not delay:
-            delay = self.conf['svr.force_close_delay']
+            delay = self.conf['svr.close.force_close_delay']
+        self.err('close: delay = %s, exit_code = %s' % (delay, exit_code))
+
         threading.Timer(interval=delay, function=force_exit, args=[exit_code]).start()
-        self.on_close()
+
+        self._is_run = False
+
+        wait_time = 0
+        min_span = 0.1
+        while wait_time < int(self.conf['svr.close.wait_lock_delay']):
+            if self._run_lock.acquire(0):
+                self.info('self._run_lock.acquire')
+                break
+            time.sleep(min_span)
+            wait_time += min_span
+
+        try:
+            self.on_close()
+        except:
+            self.err(traceback.format_exc())
+
+        force_exit(exit_code)
 
     def start(self):
         try:
@@ -58,11 +85,13 @@ class ServerBase(object):
         except Exception as ex:
             self.on_except(ex, traceback.format_exc())
 
-        while True:
-            try:
-                self.run()
-            except Exception as ex:
-                self.on_except(ex, traceback.format_exc())
+        self._is_run = True
+        while self._is_run:
+            with self._run_lock:
+                try:
+                    self.run()
+                except Exception as ex:
+                    self.on_except(ex, traceback.format_exc())
 
     # ------------- abstract function --------------
     def on_reload(self):

@@ -3,7 +3,9 @@
 CONFIG_DICT = {
     # server
     'svr.name': 'my_server',
-    'svr.force_close_delay': 10,
+    'svr.timer.min_span': 1,
+    'svr.close.force_close_delay': 10,
+    'svr.close.wait_lock_delay': 1,
 
     # log
     'log.level': 'INFO',

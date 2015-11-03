@@ -37,7 +37,7 @@ class MyServer(ServerBase):
         self.output_file = open(my_conf.CONFIG_DICT['out'], 'w')
 
     def on_close(self):
-        self.err('on_close')
+        self.warn('on_close')
 
         # close you need to close, especially init in function on_start
         if self.input_file:
@@ -48,6 +48,8 @@ class MyServer(ServerBase):
         
         self.input_file = None
         self.output_file = None
+
+        self.warn('on_close_over')
 
     def on_except(self, ex, trace_back):
         # handle except, you can close program or just log it
@@ -71,10 +73,11 @@ class MyServer(ServerBase):
         self.input_file.seek(0)
         self.output_file.seek(0)
 
+        self.info('run over')
 
 if __name__ == '__main__':
     svr = MyServer()
-    svr.start()
-    # svr.forever() run forever
+    # svr.start()
+    svr.forever()  # run forever
     # svr.close()  close manually
 
