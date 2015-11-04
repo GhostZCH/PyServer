@@ -7,10 +7,8 @@
 + 动态更新代码和配置 kill -10
 + 安全退出 kill -2
 + syslog, consolelog日志处理
-+ 测试热替换
-+ 调整目录结构
-+ 多种类型timer，(相对定时，绝对定时)(IMPORTENT)
-+ 周期性输出统计信息(IMPORTENT)
++ 多种类型timer
++ 周期性输出统计信息
 + 一定时间不响应，自动退出
 
 ## todo
