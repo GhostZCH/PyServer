@@ -2,10 +2,9 @@
 
 import time
 
-from bin.svr_base import ServerBase
-
 from conf import my_conf
 from util import my_util
+from bin.svr_base import ServerBase
 
 
 class MyServer(ServerBase):
@@ -15,6 +14,7 @@ class MyServer(ServerBase):
         # you can init attributes here
         self.input_file = None
         self.output_file = None
+        self.counter = 0
 
     def on_reload(self):
         self.info('on_reload')
@@ -28,6 +28,7 @@ class MyServer(ServerBase):
         reload(my_conf)
         self.on_close()
         self.on_start()
+        self.counter = 0
 
     def on_start(self):
         self.info('start')
@@ -35,6 +36,7 @@ class MyServer(ServerBase):
         # you can init your param here. like files, sockets...
         self.input_file = open(my_conf.CONFIG_DICT['in'], 'r')
         self.output_file = open(my_conf.CONFIG_DICT['out'], 'w')
+        self.running_report()
 
     def on_close(self):
         self.warn('on_close')
@@ -59,6 +61,9 @@ class MyServer(ServerBase):
         # if call close() it while call on_close automatic
         self.close(delay=1, exit_code=-2)
 
+    def get_summary(self):
+        return 'run count = %s' % self.counter
+
     def run(self):
         self.info('run')
 
@@ -72,6 +77,9 @@ class MyServer(ServerBase):
 
         self.input_file.seek(0)
         self.output_file.seek(0)
+
+        self.counter += 1
+        time.sleep(5)
 
         self.info('run over')
 

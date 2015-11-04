@@ -62,8 +62,9 @@ class FixedPeriodTimer(PeriodTimer):
 
 
 class TimerObserver(Thread):
-    def __init__(self, min_interval, on_except):
+    def __init__(self, min_interval, on_except, logger):
         Thread.__init__(self)
+        self._logger = logger
         self._interval = min_interval
         self._timer_dict = {}
         self._finish_event = Event()
@@ -74,29 +75,37 @@ class TimerObserver(Thread):
             return False
 
         self._timer_dict[key] = timer
+        self._logger.info('TimerObserver.add_timer: key = %s' % key)
+        return True
 
     def remove_timer(self, key):
         if key not in self._timer_dict:
             return False
 
         self._timer_dict.pop(key)
+        self._logger.info('TimerObserver.remove_timer: key = %s' % key)
         return True
+
+    def clear_timer(self):
+        self._timer_dict.clear()
+        self._logger.info('TimerObserver.clear_timer: timer = %s' % self._timer_dict.keys())
 
     def run(self):
         while True:
             self._finish_event.wait(timeout=self._interval)
 
             if self._finish_event.is_set():
-                return
+                break
 
             time_stamp = time.time()
-            for key, timer in self._timer_dict.values():
+            for key in self._timer_dict.keys():
                 try:
-                    if not timer.run(time_stamp):
+                    if not self._timer_dict[key].run(time_stamp):
                         self._timer_dict.pop(key)
                 except Exception as ex:
                     self._event_on_except(ex, traceback.format_exc())
 
+        self._logger.warn('TimerObserver.run: timer stopped, timer = %s' % self._timer_dict.keys())
+
     def stop(self):
         self._finish_event.set()
-        self._event_on_finish()
