@@ -90,9 +90,10 @@ class TimerObserver(Thread):
                 return
 
             time_stamp = time.time()
-            for timer in self._timer_dict.values():
+            for key, timer in self._timer_dict.values():
                 try:
-                    timer.run(time_stamp)
+                    if not timer.run(time_stamp):
+                        self._timer_dict.pop(key)
                 except Exception as ex:
                     self._event_on_except(ex, traceback.format_exc())
 
