@@ -8,6 +8,7 @@ import traceback
 
 from util import svr_util
 from conf import svr_conf
+from svr_timer import TimerObserver, PeriodTimer, FixedPeriodTimer
 
 force_exit = os._exit
 
@@ -16,7 +17,9 @@ class ServerBase(object):
     def __init__(self):
         self._is_run = None
         self._is_close = False
+        self._is_start = False
         self._run_lock = threading.RLock()
+        self._timer_observer = TimerObserver()
         signal.signal(signal.SIGINT, self._event_signal)
         signal.signal(signal.SIGUSR1, self._event_signal)
 
@@ -71,6 +74,10 @@ class ServerBase(object):
         force_exit(exit_code)
 
     def start(self):
+        if self._is_start:
+            self.warn('program has already start!')
+        self._is_start = True
+
         try:
             self._reload()
             self.on_start()
@@ -79,6 +86,10 @@ class ServerBase(object):
             self.on_except(ex, traceback.format_exc())
 
     def forever(self):
+        if self._is_start:
+            self.warn('program has already start!')
+        self._is_start = True
+
         try:
             self._reload()
             self.on_start()
