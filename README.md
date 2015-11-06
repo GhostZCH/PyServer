@@ -11,11 +11,11 @@
 + 周期性输出统计信息
 + 一定时间不响应，自动退出
 + 错误统一处理
-
-
-## todo
 + 输出日志到特定目录(IMPORTENT)
 + 不同日志不同级别(IMPORTENT)
+
+## todo
++ timeout task
 + 更新需要用锁
 + 自动生成重启和关闭脚本
 + checkpoint(LATER)
