@@ -15,10 +15,17 @@ CONFIG_DICT = {
     'svr.close.force_close_delay': 10,
 
     # log
-    'log.level': 'INFO',
-    'log.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
-    'log.console.level': 'INFO',  # todo
-    'log.syslog.level': 'WARN',   # todo
+    'log.console': True,
+    'log.console.level': 'INFO',
+    'log.console.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+
+    'log.syslog': True,
+    'log.syslog.level': 'WARN',
+    'log.syslog.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+
+    'log.file_log': '/home/ghost/code/log/my_svr.log',
+    'log.file_log.level': 'WARN',
+    'log.file_log.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
 
     # other
     'other.x': 3

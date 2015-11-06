@@ -32,7 +32,7 @@ class ServerBase(object):
         self.conf = svr_conf.CONFIG_DICT
         self.name = self.conf['svr.name']
 
-        self.logger = svr_util.get_logger(self.name, self.conf['log.format'], self.conf['log.level'])
+        self.logger = svr_util.get_logger(self.name, self.conf)
         self.warn = self.logger.warn
         self.info = self.logger.info
         self.err = self.logger.error
@@ -136,7 +136,11 @@ class ServerBase(object):
             self._reload()
             self.on_start()
         except Exception as ex:
-            self.on_except(ex, traceback.format_exc())
+            trace = traceback.format_exc()
+            try:
+                self.on_except(ex, traceback.format_exc())
+            except:
+                print trace
 
         self._is_run = True
         while self._is_run:

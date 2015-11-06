@@ -55,6 +55,7 @@ class MyServer(ServerBase):
 
     def on_except(self, ex, trace_back):
         # handle except, you can close program or just log it
+        print(trace_back)
         self.err(ex)
         self.warn(trace_back)
 
@@ -81,6 +82,7 @@ class MyServer(ServerBase):
         self.counter += 1
         time.sleep(5)
 
+        self.running_report()
         self.info('run over')
 
 if __name__ == '__main__':
