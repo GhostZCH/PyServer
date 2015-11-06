@@ -19,7 +19,7 @@ def get_syslog_handler(log_format, log_level):
 
 
 def get_file_handler(file_name, log_format, log_level):
-    handler = TimedRotatingFileHandler(file_name, 'M')
+    handler = TimedRotatingFileHandler(file_name, 'D')
     handler.setFormatter(logging.Formatter(log_format))
     handler.setLevel(log_level)
     return handler
