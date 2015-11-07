@@ -58,6 +58,12 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
   
 ### logs
 
+调用方式：
+
+    self.info()
+    self.warn()
+    self.err()
+
 提供3种log方式，后面会增加email，参见 conf/svr_conf.py
 
     CONFIG_DICT = {

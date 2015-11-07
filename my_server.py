@@ -20,7 +20,7 @@ class MyServer(ServerBase):
         self.info('on_reload')
 
         # you can reload your own config or code here
-        # use kill -2 to reload code
+        # use './svr.sh reload' to reload code
         # you need NOT to restart when you want to update them
         # I suggest you can write most code in other py files so you can do 'hot-update'
 
@@ -39,6 +39,7 @@ class MyServer(ServerBase):
         self.running_report()
 
     def on_close(self):
+        # use './svr.sh reload'
         self.warn('on_close')
 
         # close you need to close, especially init in function on_start
