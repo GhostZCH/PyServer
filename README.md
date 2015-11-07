@@ -142,11 +142,10 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
 ### todo
 
 + 写注释，更新readme !!!
++ 邮件通知
 + timeout task
 + retry task
 + 更新需要用锁
-
 + checkpoint(LATER)
-+ 邮件通知(LATER)
 + master-slave(LATER)
 
