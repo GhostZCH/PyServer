@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import logging
 from logging.handlers import SysLogHandler, TimedRotatingFileHandler
 
@@ -47,3 +48,6 @@ def get_logger(server_name, svr_conf):
     return logger
 
 
+def out_put_pid_file():
+    with open('svr.pid', 'w') as f:
+        f.write(str(os.getpid()))

@@ -27,6 +27,8 @@ class ServerBase(object):
         signal.signal(signal.SIGTERM, self._event_signal)
         signal.signal(signal.SIGUSR1, self._event_signal)
 
+        svr_util.out_put_pid_file()
+
     def _reload(self):
         reload(svr_conf)
         self.conf = svr_conf.CONFIG_DICT
@@ -83,6 +85,14 @@ class ServerBase(object):
         self._timer_observer.add_timer('check_timer', check_timer)
         self._timer_observer.add_timer('summary_timer', summary_timer)
 
+    def _per_start(self):
+        if self._is_start:
+            self.warn('program has already start!')
+            return False
+
+        self._is_start = True
+        return True
+
     # ------------- public function --------------
     def close(self, delay=None, exit_code=0):
         if self._is_close:
@@ -116,9 +126,8 @@ class ServerBase(object):
         _force_exit(exit_code)
 
     def start(self):
-        if self._is_start:
-            self.warn('program has already start!')
-        self._is_start = True
+        if not self._per_start():
+            return
 
         try:
             self._reload()
@@ -128,9 +137,8 @@ class ServerBase(object):
             self.on_except(ex, traceback.format_exc())
 
     def forever(self):
-        if self._is_start:
-            self.warn('program has already start!')
-        self._is_start = True
+        if not self._per_start():
+            return
 
         try:
             self._reload()
