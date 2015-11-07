@@ -45,14 +45,17 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
         pass
         
 
+**备注：可参照 my_server.py** 
 
 ### hot-update
-  kill -10
+
+  `./svr.sh reload`
   
 ### safe-close
-  ctrl+C
-  kill
 
+  `./svr.sh close`
+  `ctrl+C`
+  
 ### logs
 
 提供3种log方式，后面会增加email，参见 conf/svr_conf.py
@@ -77,7 +80,8 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
 
 ### timer
 
-通过调用`add_timer` 和 `remove_timer`增加和减少函数，timer是串行的，不需要用锁，以实现如下timer:
+通过调用`add_timer` 和 `remove_timer`增加和减少timer，timer之间是串行的，不需要用锁，timer和run之间的锁需要开发者根据需求自己处理。已实现如下timer:
+
 + PeriodTimer 周期定时器
 + FixedPeriodTimer 固定时间点的定时器，每小时/每天/每分钟执行
 + 可以继承 _AbstractTimer 实现新的定时器（见 PyServer/bin/svr_timer.py）
