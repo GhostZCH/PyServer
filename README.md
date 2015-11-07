@@ -128,21 +128,24 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
 
 ### done
 
-+ 动态更新代码和配置 kill -10
-+ 安全退出 kill -2
++ 动态更新代码和配置 `svr.sh reload`
++ 安全退出 `svr.sh close`
 + syslog, consolelog日志处理
 + 多种类型timer
 + 周期性输出统计信息
 + 一定时间不响应，自动退出
 + 错误统一处理
-+ 输出日志到特定目录(IMPORTENT)
-+ 不同日志不同级别(IMPORTENT)
-
++ 输出日志到特定目录
++ 不同日志不同级别
++ 自动生成重启和关闭脚本 svr.sh
++ 
 ### todo
+
 + 写注释，更新readme !!!
 + timeout task
++ retry task
 + 更新需要用锁
-+ 自动生成重启和关闭脚本
+
 + checkpoint(LATER)
 + 邮件通知(LATER)
 + master-slave(LATER)
