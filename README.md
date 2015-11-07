@@ -7,8 +7,35 @@
 ### basic
 
 my_*.py 是本框架的示例
+
 svr_*.py 是本框架的源代码
 
+开发人员通过继承ServerBase得到基本功能，如：
+
+    from bin.svr_base import ServerBase
+    
+    class MyServer(ServerBase):
+    
+ServerBase 提供一些抽象函数供开发者实现自定义的处理：
+
+    # ------------- abstract function --------------
+    def on_reload(self):
+        pass
+
+    def on_close(self):
+        pass
+
+    def on_start(self):
+        pass
+
+    def on_except(self, ex, trace_back):
+        pass
+
+    def get_summary(self):
+        pass
+
+    def run(self):
+        pass
 
 ### hot-update
   kill -10
@@ -19,6 +46,24 @@ svr_*.py 是本框架的源代码
 
 ### logs
 
+提供3种log方式，后面会增加email，参见 conf/svr_conf.py
+
+    CONFIG_DICT = {
+        # ....
+    
+        # log
+        'log.console': True,
+        'log.console.level': 'INFO',
+        'log.console.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+    
+        'log.syslog': True,
+        'log.syslog.level': 'WARN',
+        'log.syslog.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+    
+        'log.file_log': '/home/ghost/code/log/my_svr.log',
+        'log.file_log.level': 'WARN',
+        'log.file_log.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+    }
 
 
 ## tasks
@@ -36,11 +81,11 @@ svr_*.py 是本框架的源代码
 + 不同日志不同级别(IMPORTENT)
 
 ### todo
++ 写注释，更新readme !!!
 + timeout task
 + 更新需要用锁
 + 自动生成重启和关闭脚本
 + checkpoint(LATER)
 + 邮件通知(LATER)
 + master-slave(LATER)
-
 
