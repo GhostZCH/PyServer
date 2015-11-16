@@ -133,21 +133,19 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
 + syslog, consolelog日志处理
 + 多种类型timer
 + 周期性输出统计信息
++ 邮件通知
 + 一定时间不响应，自动退出
 + 错误统一处理
 + 输出日志到特定目录
 + 不同日志不同级别
 + 自动生成重启和关闭脚本 svr.sh
-+ 
+
 ### todo
 
 + 写注释，更新readme !!!
-+ 响应特定的信号，输出最后一统计信息
-+ 响应特定的信号，输出当前配置
-+ 邮件通知
++ 定时输出运行情况到zmq,用多种moniter监控
 + timeout task
 + retry task
 + 更新需要用锁
 + checkpoint(LATER)
 + master-slave(LATER)
-+ 网页监控(LATER)
