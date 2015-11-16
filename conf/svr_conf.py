@@ -5,6 +5,9 @@ CONFIG_DICT = {
     'svr.name': 'my_server',
     'svr.log_conf_on_reload': True,
 
+    'svr.monitor': True,
+    'svr.monitor.host': '192.168.1.',
+
     # timer 设置 (单位:s)
     'svr.timer.min_span': 1,  # timer的精度
     'svr.timer.run_status_check_time_span': 60,  # 最大无响应时间，超过这个时间没有相应，自动退出
@@ -26,6 +29,14 @@ CONFIG_DICT = {
     'log.file_log': '/home/ghost/code/log/my_svr.log',
     'log.file_log.level': 'WARN',
     'log.file_log.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+
+    'log.email': True,
+    'log.email.level': 'ERROR',
+    'log.email.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+    'log.email.config': {'host': ('smtp.163.com', 25),
+                         'from': ('xxx@163.com', 'xxx'),
+                         'target': ['xxx@163.com']},
+
 
     # other
     'other.x': 3
