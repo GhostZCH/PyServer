@@ -2,6 +2,7 @@
 
 import os
 import logging
+import datetime
 from logging.handlers import SysLogHandler, TimedRotatingFileHandler, SMTPHandler
 
 
@@ -64,3 +65,7 @@ def get_logger(server_name, svr_conf):
 def out_put_pid_file():
     with open('svr.pid', 'w') as f:
         f.write(str(os.getpid()))
+
+
+def get_time():
+    return datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')

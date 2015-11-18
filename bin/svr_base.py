@@ -10,6 +10,8 @@ from util import svr_util
 from conf import svr_conf
 from svr_timer import TimerObserver, PeriodTimer, FixedPeriodTimer
 
+from svr_moniter_handler import MonitorHandler
+
 _force_exit = os._exit
 
 
@@ -22,6 +24,8 @@ class ServerBase(object):
         self._timer_observer = None
         self._last_report_time = None
         self._run_lock = threading.RLock()
+
+        self._monitor_handler = None
 
         signal.signal(signal.SIGINT, self._event_signal)
         signal.signal(signal.SIGTERM, self._event_signal)
@@ -48,15 +52,22 @@ class ServerBase(object):
         time.sleep(self.conf['svr.timer.min_span'])
         self._timer_observer.start()
 
+        if self.conf['svr.monitor']:
+            self._monitor_handler = MonitorHandler.instance(self.conf, self._monitor_handler)
+        else:
+            self._monitor_handler = None
+
     def _event_signal(self, sig, frame):
         self.warn('signal %s' % sig)
 
-        if sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            if sig in (signal.SIGINT, signal.SIGTERM):
+                self.close()
+            elif sig == signal.SIGUSR1:
+                self._reload()
+        except:
+            print traceback.format_exc()
             self.close()
-        elif sig == signal.SIGUSR1:
-            self._reload()
-        else:
-            _force_exit(-1)
 
     def _event_run_states_check(self):
         if not self._last_report_time:
@@ -71,7 +82,15 @@ class ServerBase(object):
         self.close(exit_code=-3)
 
     def _event_output_summary(self):
-        self.warn('<SUMMARY> %s' % str(self.get_summary()))
+        summary = self.get_summary()
+        self.warn('<SUMMARY> %s' % str(summary))
+        if self._monitor_handler:
+            self._monitor_handler.last_summary = summary
+            self._monitor_handler.last_summary_time = svr_util.get_time()
+
+    def _event_monitor_pub(self):
+        if self._monitor_handler:
+            self._monitor_handler.send(self.conf)
 
     def _reset_sys_timer(self):
         if self._timer_observer:
@@ -80,10 +99,12 @@ class ServerBase(object):
 
         check_timer = PeriodTimer(self._event_run_states_check, self.conf['svr.timer.run_status_check_time_span'])
         summary_timer = FixedPeriodTimer(self._event_output_summary, self.conf['svr.timer.summary_output_time_point'])
+        monitor_timer = PeriodTimer(self._event_monitor_pub, self.conf['svr.monitor.timer'])
 
         self._timer_observer = TimerObserver(int(self.conf['svr.timer.min_span']), self.on_except, self.logger)
         self._timer_observer.add_timer('check_timer', check_timer)
         self._timer_observer.add_timer('summary_timer', summary_timer)
+        self._timer_observer.add_timer('monitor_timer', monitor_timer)
 
     def _per_start(self):
         if self._is_start:
@@ -91,7 +112,22 @@ class ServerBase(object):
             return False
 
         self._is_start = True
+        if self._monitor_handler:
+            self._monitor_handler.start_time = svr_util.get_time()
+
         return True
+
+    def _on_exception(self, ex, trace_back):
+        try:
+            if self._monitor_handler:
+                self._monitor_handler.set_err(ex, trace_back)
+            self.on_except(ex, trace_back)
+        except:
+            try:
+                self.err(trace_back)
+            except:
+                print(trace_back)
+            _force_exit(-1)
 
     # ------------- public function --------------
     def close(self, delay=None, exit_code=0):
@@ -134,7 +170,7 @@ class ServerBase(object):
             self.on_start()
             self.run()
         except Exception as ex:
-            self.on_except(ex, traceback.format_exc())
+            self._on_exception(ex, traceback.format_exc())
 
     def forever(self):
         if not self._per_start():
@@ -156,7 +192,7 @@ class ServerBase(object):
                 try:
                     self.run()
                 except Exception as ex:
-                    self.on_except(ex, traceback.format_exc())
+                    self._on_exception(ex, traceback.format_exc())
 
     def running_report(self):
         self._last_report_time = time.time()
