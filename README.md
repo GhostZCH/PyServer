@@ -53,16 +53,16 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
   
 ### safe-close
 
-  `./svr.sh close`
-  `ctrl+C`
++  `./svr.sh close`
++  `ctrl+C`
   
 ### logs
 
 调用方式：
 
-    self.info()
-    self.warn()
-    self.err()
+ +   self.info()
+ +   self.warn()
+ +   self.err()
 
 提供3种log方式，后面会增加email，参见 conf/svr_conf.py
 
@@ -122,6 +122,63 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
         }
 
 
+### monitor api
+
+使用zmq PUB-SUB 模式定时输出运行信息，通过如下参数配置
+
+        CONFIG_DICT = {
+            ...
+            
+            'svr.monitor': True,
+            'svr.monitor.timer': 10,
+            'svr.monitor.host': 'tcp://127.0.0.1:5558',
+        
+            ...
+        }
+        
+        
+可以通过 zmq.Socket.recv_pyobj() 方法接收数据，数据格式如下：
+
+        (base_info_dict, svr_conf_dict)
+
++ base_info_dict：
+
+        {'last_error': None,
+         'last_error_time': None,
+         'last_reload_time': '2015/11/18 22:21:42',
+         'last_summary': 'run count = 28',
+         'last_summary_time': '2015/11/18 22:24:01',
+         'last_trace': None,
+         'start_time': '2015/11/18 22:21:42'}
+         
++ svr_conf_dict:
+
+        {'log.console': True,
+         'log.console.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+         'log.console.level': 'INFO',
+         'log.email': False,
+         'log.email.config': {'from': ('xxx@163.com', 'xxx'),
+                              'host': ('smtp.163.com', 25),
+                              'target': ['xxx@163.com']},
+         'log.email.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+         'log.email.level': 'ERROR',
+         'log.file_log': '/home/ghost/code/log/my_svr.log',
+         'log.file_log.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+         'log.file_log.level': 'WARN',
+         'log.syslog': True,
+         'log.syslog.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
+         'log.syslog.level': 'WARN',
+         'other.x': 3,
+         'svr.close.force_close_delay': 10,
+         'svr.close.wait_lock_delay': 1,
+         'svr.log_conf_on_reload': True,
+         'svr.monitor': True,
+         'svr.monitor.host': 'tcp://127.0.0.1:5558',
+         'svr.monitor.timer': 10,
+         'svr.name': 'my_server',
+         'svr.timer.min_span': 1,
+         'svr.timer.run_status_check_time_span': 60,
+         'svr.timer.summary_output_time_point': 'M'}
 
 
 ## tasks
@@ -139,11 +196,11 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
 + 输出日志到特定目录
 + 不同日志不同级别
 + 自动生成重启和关闭脚本 svr.sh
++ 定时输出运行情况到zmq,用多种moniter监控
 
 ### todo
 
 + 写注释，更新readme !!!
-+ 定时输出运行情况到zmq,用多种moniter监控
 + timeout task
 + retry task
 + 更新需要用锁
