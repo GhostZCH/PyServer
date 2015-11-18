@@ -60,9 +60,9 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
 
 调用方式：
 
- +   self.info()
- +   self.warn()
- +   self.err()
+ +   self.info()  建议打印正常的运行信息，方便调试, 上线产品不打印，默认只输出控制台
+ +   self.warn()  系统运行的关键节点(启动，重启)，对程序运行有可能产生影响的事件，捕获的不影响程序正常的异常，默认输出控制台和syslog
+ +   self.err()   严重的错误，可能直接导致程序退出的异常，默认输出控制台和syslog，建议设置邮箱自动发送该级别的log
 
 提供3种log方式，后面会增加email，参见 conf/svr_conf.py
 
@@ -137,11 +137,13 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
         }
         
         
-可以通过 zmq.Socket.recv_pyobj() 方法接收数据，数据格式如下：
+可以通过 zmq.Socket.recv_pyobj() 方法接收数据， 详见：[Tiny_monitor](https://github.com/GhostZCH/Tiny_monitor)
+
+数据格式如下：
 
         (base_info_dict, svr_conf_dict)
 
-+ base_info_dict：
++ base_info_dict(程序运行基本信息)：
 
         {'last_error': None,
          'last_error_time': None,
@@ -151,7 +153,7 @@ ServerBase 提供一些抽象函数供开发者实现自定义的处理：
          'last_trace': None,
          'start_time': '2015/11/18 22:21:42'}
          
-+ svr_conf_dict:
++ svr_conf_dict(**正在**使用配置):
 
         {'log.console': True,
          'log.console.format': '<%(levelname)s: %(name)s(%(process)d)> [%(filename)s: %(lineno)d] >> %(message)s ',
