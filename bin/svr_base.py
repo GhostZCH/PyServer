@@ -169,6 +169,7 @@ class ServerBase(object):
             self._reload()
             self.on_start()
             self.run()
+            self.close(delay=10, exit_code=0)
         except Exception as ex:
             self._on_exception(ex, traceback.format_exc())
 
@@ -185,6 +186,7 @@ class ServerBase(object):
                 self.on_except(ex, traceback.format_exc())
             except:
                 print trace
+            return
 
         self._is_run = True
         while self._is_run:
