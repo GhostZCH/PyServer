@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+import yaml
 
-CONFIG_DICT = {
+
+CONF = {
     # server
     'svr.name': 'my_server',
     'svr.log_conf_on_reload': True,
@@ -37,8 +39,11 @@ CONFIG_DICT = {
     'log.email.config': {'host': ('smtp.163.com', 25),
                          'from': ('xxx@163.com', 'xxx'),
                          'target': ['xxx@163.com']},
-
-
-    # other
-    'other.x': 3
 }
+
+
+try:
+    with open('conf/svr_conf.yaml') as yaml_file:
+        CONF.update(yaml.load(yaml_file))
+except Exception as ex:
+    print ex

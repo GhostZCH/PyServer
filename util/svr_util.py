@@ -67,5 +67,9 @@ def out_put_pid_file():
         f.write(str(os.getpid()))
 
 
+def force_exit(exit_code):
+    os._exit(exit_code)
+
+
 def get_time():
     return datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
