@@ -17,7 +17,6 @@ CONF = {
     'svr.monitor.host': 'tcp://127.0.0.1:5558',
 
     # close 信号处理配置
-    'svr.close.wait_lock_delay': 1,
     'svr.close.force_close_delay': 10,
 
     # log

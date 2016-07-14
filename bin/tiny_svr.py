@@ -8,22 +8,23 @@ import traceback
 
 from util import svr_util
 from conf import svr_conf
-from svr_timer import TimerObserver, PeriodTimer, FixedPeriodTimer
 
-from svr_moniter_handler import MonitorHandler
+from tiny_timer import TimerObserver, PeriodTimer, FixedPeriodTimer
 
 
-class TinyServer(object):
-    def __init__(self):
+class TinyServer:
+    def __init__(self, handler_class, argv):
         self._is_run = False
         self._is_close = False
-        self._is_start = False
+        self._is_reload = False
 
         self._timer_observer = None
         self._last_report_time = None
-        self._run_lock = threading.RLock()
 
-        self._monitor_handler = None
+        self._handler = None
+
+        self._argv = argv
+        self._handler_class = handler_class
 
         signal.signal(signal.SIGINT, self._event_signal)
         signal.signal(signal.SIGTERM, self._event_signal)
@@ -32,40 +33,17 @@ class TinyServer(object):
         svr_util.out_put_pid_file()
 
     def _reload(self):
+        self.warn("reload ...")
+        reload(svr_util)
         reload(svr_conf)
-        self.conf = svr_conf.CONFIG_DICT
-        self.name = self.conf['svr.name']
-
-        self.logger = svr_util.get_logger(self.name, self.conf)
-        self.warn = self.logger.warn
-        self.info = self.logger.info
-        self.err = self.logger.error
-
-        if self.conf['svr.log_conf_on_reload']:
-            self.warn(self.conf)
-
-        self._reset_sys_timer()
-        self.on_reload()
-
-        time.sleep(self.conf['svr.timer.min_span'])
-        self._timer_observer.start()
-
-        if self.conf['svr.monitor']:
-            self._monitor_handler = MonitorHandler.instance(self.conf, self._monitor_handler)
-        else:
-            self._monitor_handler = None
 
     def _event_signal(self, sig, frame):
         self.warn('signal %s' % sig)
 
-        try:
-            if sig in (signal.SIGINT, signal.SIGTERM):
-                self.close()
-            elif sig == signal.SIGUSR1:
-                self._reload()
-        except:
-            print traceback.format_exc()
-            self.close()
+        if sig in (signal.SIGINT, signal.SIGTERM):
+            self._is_close = True
+        elif sig == signal.SIGUSR1:
+            self._is_reload = True
 
     def _event_run_states_check(self):
         if not self._last_report_time:
@@ -76,56 +54,24 @@ class TinyServer(object):
         if delta_time < report_time:
             return
 
-        self.err('run_states_check: not receive report in %s s, start auto-exit!' % report_time)
+        self.error('run_states_check: not receive report in %s s, start auto-exit!' % report_time)
         self.close(exit_code=-3)
 
     def _event_output_summary(self):
-        summary = self.get_summary()
-        self.warn('<SUMMARY> %s' % str(summary))
-        if self._monitor_handler:
-            self._monitor_handler.last_summary = summary
-            self._monitor_handler.last_summary_time = svr_util.get_time()
-
-    def _event_monitor_pub(self):
-        if self._monitor_handler:
-            self._monitor_handler.send(self.conf)
+        self.warn('<SUMMARY> %s' % self._handler.get_summary())
 
     def _reset_sys_timer(self):
         if self._timer_observer:
-            self._timer_observer.clear_timer()
             self._timer_observer.stop()
+            self._timer_observer.clear_timer()
 
         check_timer = PeriodTimer(self._event_run_states_check, self.conf['svr.timer.run_status_check_time_span'])
         summary_timer = FixedPeriodTimer(self._event_output_summary, self.conf['svr.timer.summary_output_time_point'])
-        monitor_timer = PeriodTimer(self._event_monitor_pub, self.conf['svr.monitor.timer'])
 
         self._timer_observer = TimerObserver(int(self.conf['svr.timer.min_span']), self.on_except, self.logger)
+
         self._timer_observer.add_timer('check_timer', check_timer)
         self._timer_observer.add_timer('summary_timer', summary_timer)
-        self._timer_observer.add_timer('monitor_timer', monitor_timer)
-
-    def _per_start(self):
-        if self._is_start:
-            self.warn('program has already start!')
-            return False
-
-        self._is_start = True
-        if self._monitor_handler:
-            self._monitor_handler.start_time = svr_util.get_time()
-
-        return True
-
-    def _on_exception(self, ex, trace_back):
-        try:
-            if self._monitor_handler:
-                self._monitor_handler.set_err(ex, trace_back)
-            self.on_except(ex, trace_back)
-        except:
-            try:
-                self.err(trace_back)
-            except:
-                print(trace_back)
-            _force_exit(-1)
 
     # ------------- public function --------------
     def close(self, delay=None, exit_code=0):
@@ -139,44 +85,22 @@ class TinyServer(object):
         self.err('close: delay = %s, exit_code = %s' % (delay, exit_code))
         self.warn('<SUMMARY> %s' % str(self.get_summary()))
 
-        threading.Timer(interval=delay, function=_force_exit, args=[exit_code]).start()
+        threading.Timer(interval=delay, function=svr_util.force_exit, args=[exit_code]).start()
 
         self._is_run = False
-
-        wait_time = 0
-        min_span = 0.1
-        while wait_time < int(self.conf['svr.close.wait_lock_delay']):
-            if self._run_lock.acquire(0):
-                self.info('self._run_lock.acquire')
-                break
-            time.sleep(min_span)
-            wait_time += min_span
 
         try:
             self.on_close()
         except:
-            self.err(traceback.format_exc())
+            self.error(traceback.format_exc())
 
-        _force_exit(exit_code)
-
-    def start(self):
-        if not self._per_start():
-            return
-
-        try:
-            self._reload()
-            self.on_start()
-            self.run()
-            self.close(delay=10, exit_code=0)
-        except Exception as ex:
-            self._on_exception(ex, traceback.format_exc())
+        svr_util.force_exit(exit_code)
 
     def forever(self):
         if not self._per_start():
             return
 
         try:
-            self._reload()
             self.on_start()
         except Exception as ex:
             trace = traceback.format_exc()
@@ -202,22 +126,3 @@ class TinyServer(object):
 
     def remove_timer(self, key):
         return self._timer_observer.remove_timer(key)
-
-    # ------------- abstract function --------------
-    def on_reload(self):
-        pass
-
-    def on_close(self):
-        pass
-
-    def on_start(self):
-        pass
-
-    def on_except(self, ex, trace_back):
-        pass
-
-    def get_summary(self):
-        pass
-
-    def run(self):
-        pass
