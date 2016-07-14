@@ -1,40 +1,39 @@
 class TinyHandler:
-    def __init__(self, argv, config, logger, context, server):
-        self.argv = argv
-        self.server = server
-        self.config = config
-        self.context = context
-
+    def __init__(self, config, logger, context):
+        self._config = config
+        self._context = context
         self._set_logger(logger)
 
+        if self._config['svr.log_conf_on_reload']:
+            self.warn(self._config)
+            self.warn(self._context)
+
+        self.warn('TinyHandler.init finish')
+
     def run(self):
-        self.info(self.get_summary())
-        self.server.running_report()
+        raise NotImplementedError()
 
     def get_summary(self):
-        return ''
-
-    def get_name(self):
-        return self.config["svr.name"]
+        raise NotImplementedError()
 
     # events
-    def on_start(self):
-        if self.config['svr.log_conf_on_reload']:
-            self.warn(self.config)
+    def start(self):
+        raise NotImplementedError()
 
-    def on_close(self):
-        pass
+    def close(self):
+        raise NotImplementedError()
 
-    def on_error(self, ex, trace):
+    def on_except(self, ex, trace):
         self.error(ex)
         self.warn(ex)
         self.warn(trace)
+        return False
 
     def on_timer(self, key):
-        pass
+        self.info('TinyHandler.on_timer: %s' % key)
 
     def _set_logger(self, logger):
-        self.logger = logger
+        self._logger = logger
         self.info = logger.info
         self.warn = logger.warn
         self.error = logger.error

@@ -62,10 +62,9 @@ def get_logger(server_name, svr_conf):
     return logger
 
 
-def out_put_pid_file():
-    with open('svr.pid', 'w') as f:
+def out_put_pid_file(svr_name):
+    with open(svr_name + '.pid', 'w') as f:
         f.write(str(os.getpid()))
-
 
 def force_exit(exit_code):
     os._exit(exit_code)

@@ -65,29 +65,38 @@ class TinyTimerObserver:
         self._timer_dict = {}
         self._logger = logger
 
-    def add_timer(self, key, timer):
+    def add(self, key, timer):
         if key in self._timer_dict:
             return False
 
         self._timer_dict[key] = timer
-        self._logger.info('TinyTimerObserver.add_timer: key = %s' % key)
+        self._logger.warn('TinyTimerObserver.add_timer: key = %s' % key)
+        self._logger.warn('TinyTimerObserver: keys = %s' % self._timer_dict.keys())
         return True
 
-    def remove_timer(self, key):
+    def remove(self, key):
         if key not in self._timer_dict:
             return False
 
         self._timer_dict.pop(key)
-        self._logger.info('TimerObserver.remove_timer: key = %s' % key)
+        self._logger.warn('TimerObserver.remove_timer: key = %s' % key)
+        self._logger.warn('TinyTimerObserver: keys = %s' % self._timer_dict.keys())
         return True
 
-    def clear_timer(self):
+    def clear(self):
         self._timer_dict.clear()
-        self._logger.info('TimerObserver.clear_timer: timer = %s' % self._timer_dict.keys())
+        self._logger.info('TimerObserver.clear_timer')
+
+    def run(self):
+        time_stamp = time.time()
+        for key in self._timer_dict.keys():
+            if not self._timer_dict[key].run(time_stamp):
+                self._timer_dict.pop(key)
+        self._logger.info('TinyTimerObserver: keys = %s' % self._timer_dict.keys())
 
 
 class TinyThreadTimerObserver(Thread):
-    def __init__(self, min_interval, logger):
+    def __init__(self, logger, min_interval=1):
         Thread.__init__(self)
         self._go = True
         self._logger = logger
@@ -97,28 +106,37 @@ class TinyThreadTimerObserver(Thread):
         self._timer_dict = {}
         self._finish_event = Event()
 
-    def add_timer(self, key, timer):
+    def add(self, key, timer):
         if key in self._timer_dict:
             return False
 
         with self._lock:
             self._timer_dict[key] = timer
-        self._logger.warn('TinyThreadTimerObserver.add_timer: key = %s' % key)
+
+        self._logger.warn('TinyThreadTimerObserver.add: key = %s' % key)
+        self._logger.warn('TinyThreadTimerObserver: keys = %s' % self._timer_dict.keys())
+
         return True
 
-    def remove_timer(self, key):
+    def remove(self, key):
         if key not in self._timer_dict:
             return False
 
         with self._lock:
             self._timer_dict.pop(key)
-        self._logger.warn('TinyThreadTimerObserver.remove_timer: key = %s' % key)
+
+        self._logger.warn('TinyThreadTimerObserver.remove: key = %s' % key)
+        self._logger.warn('TinyThreadTimerObserver: keys = %s' % self._timer_dict.keys())
+
         return True
 
-    def clear_timer(self):
+    def clear(self):
+        self._go = False
+        self._finish_event.set()
+
         with self._lock:
             self._timer_dict.clear()
-        self._logger.info('TinyThreadTimerObserver.clear_timer: timer = %s' % self._timer_dict.keys())
+        self._logger.info('TinyThreadTimerObserver.clear_timer')
 
     def run(self):
         while self._go:
@@ -138,6 +156,3 @@ class TinyThreadTimerObserver(Thread):
 
         self._logger.warn('TinyThreadTimerObserver.run: timer stopped, timer = %s' % self._timer_dict.keys())
 
-    def stop(self):
-        self._go = False
-        self._finish_event.set()
