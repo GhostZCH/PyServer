@@ -1,3 +1,4 @@
+import time
 import datetime
 from bin.tiny_handler import TinyHandler
 
@@ -24,10 +25,12 @@ class ExampleHandler(TinyHandler):
         self._file = None
         self._file_name = self._config['example.handler.filename'] % url
         self._url = 'http://%s/' % url
-        self._summary = context(['summary']) if 'summary' in context else ExampleHandlerSummary()
+
+        self._summary = context['summary'] if 'summary' in context else ExampleHandlerSummary()
+        context['summary'] = self._summary
 
     def run(self):
-        self.info('run')
+        self.info('ExampleHandler.run')
         content = example_util.get_page_content(self._url)
         href_list = example_util.get_page_href_list(content)
 
@@ -36,6 +39,8 @@ class ExampleHandler(TinyHandler):
         self._file.write('\n\n')
 
         self._summary.run(len(href_list))
+
+        time.sleep(30)
 
     def get_summary(self):
         return str(self._summary)
@@ -48,11 +53,14 @@ class ExampleHandler(TinyHandler):
         self.warn('ExampleHandler.close')
         self._file.close()
 
+    def flush(self):
+        self.info("ExampleHandler.flush")
+        self._file.flush()
+
     def on_except(self, ex, trace):
         """
         :return: True: keep going, False: exit process
         """
-        self.warn(ex)
         self.warn(trace)
         return True
 

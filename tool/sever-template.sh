@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ARGV=www.baidu.com
-SVR_NAME=example-server
+ARGV='argv'
+SVR_NAME='svr-name'
 PID_FILE_NAME=${SVR_NAME}-${ARGV}.pid
 
 work_dir=`dirname $(realpath $0)`

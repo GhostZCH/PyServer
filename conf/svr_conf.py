@@ -43,4 +43,4 @@ try:
     with open('conf/svr_conf.yaml') as yaml_file:
         CONF.update(yaml.load(yaml_file))
 except Exception as ex:
-    print ex
+    pass

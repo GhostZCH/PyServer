@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import time
 import signal
 import threading
@@ -19,6 +20,7 @@ class TinyServer:
         self._is_run = False
         self._is_close = False
         self._is_reload = False
+        self._is_closing = False
 
         self._logger = None
         self._handler = None
@@ -45,12 +47,15 @@ class TinyServer:
     def on_reload(self):
         pass
 
+    def on_start(self):
+        pass
+
     # ------------- public function --------------
     def close(self, delay=None, exit_code=0):
-        if not self._is_close:
+        if self._is_closing:
             return
 
-        self._is_close = False
+        self._is_closing = True
         if not delay:
             delay = self._conf['svr.close.force_close_delay']
 
@@ -66,9 +71,11 @@ class TinyServer:
         svr_util.force_exit(exit_code)
 
     def forever(self):
-        if not self._start():
+        if self._is_run:
             return
 
+        self._is_run = True
+        self._start()
         while self._is_run:
             try:
                 if self._is_close:
@@ -80,11 +87,9 @@ class TinyServer:
                     continue
 
                 self._timer.run()
-                print 'self._handler.run() start'
                 self._handler.run()
-                print 'self._handler.run() end'
                 self.running_report()
-                print self._is_run
+
             except Exception as ex:
                 if not self._on_error(ex, traceback.format_exc()):
                     return
@@ -125,12 +130,7 @@ class TinyServer:
         reload(svr_conf)
         self.on_reload()
 
-        self._conf = svr_conf.CONF
-        self._get_logger()
-
-        self._handler = self.get_handler()
-        self._handler.start()
-        self._init_timer()
+        self._start()
 
         self._is_reload = False
 
@@ -143,16 +143,12 @@ class TinyServer:
         self._handler.close()
 
     def _start(self):
-        if self._is_run:
-            return False
-
-        self._is_run = True
+        self._conf = svr_conf.CONF
         self._get_logger()
         self._handler = self.get_handler()
         self._handler.start()
         self._init_timer()
-
-        return True
+        self.on_start()
 
     def _signal(self, sig, _):
         self.warn('signal %s' % sig)
@@ -179,7 +175,13 @@ class TinyServer:
             return
 
         self.error('run_states_check: not receive report in %s s, start auto-exit!' % report_time)
-        self.close(exit_code=-3)
+
+        # close safely
+        os.kill(os.getpid(), signal.SIGINT)
+
+        # if can't close safely force_exit
+        delay = self._conf['svr.close.force_close_delay']
+        threading.Timer(interval=delay, function=svr_util.force_exit, args=[-3]).start()
 
     def _output_summary(self):
         self.warn('<SUMMARY> %s' % self._handler.get_summary())
@@ -198,4 +200,3 @@ class TinyServer:
         self._thread_timer.add('check_timer', check_timer)
         self._thread_timer.add('summary_timer', summary_timer)
         self._thread_timer.start()
-

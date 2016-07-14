@@ -5,6 +5,7 @@ from util import example_handler
 
 from bin.tiny_svr import TinyServer
 from util.example_handler import ExampleHandler
+from bin.tiny_timer import PeriodTimer
 
 
 class ExampleServer(TinyServer):
@@ -25,8 +26,16 @@ class ExampleServer(TinyServer):
         reload(example_handler)
         reload(example_util)
 
+    def on_start(self):
+        flush_timer = PeriodTimer(self.flush, 60)
+        self.add_timer('flush', flush_timer)
+
     def get_handler(self):
         return ExampleHandler(self._url, self._conf, self._logger, self._context)
+
+    def flush(self):
+        if self._handler:
+            self._handler.flush()
 
 if __name__ == '__main__':
     ExampleServer(sys.argv[1]).forever()
